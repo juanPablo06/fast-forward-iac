@@ -1,5 +1,6 @@
 services:
   backend:
+    container_name: ft-backend
     build:
       context: .
       target: final
