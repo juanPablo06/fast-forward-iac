@@ -1,4 +1,10 @@
 # Security Group Variables
+
+variable "instance_sg_name" {
+  description = "The name of the instance security group"
+  type        = string
+}
+
 variable "security_group_ingress" {
   description = "List of ingress rules for the security group"
   type = list(object({
