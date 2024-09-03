@@ -12,3 +12,36 @@ data "aws_ami" "amazon_linux_2023" {
 
   owners = ["amazon"]
 }
+
+data "aws_iam_policy_document" "instance_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "s3_read_access" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::${var.environment}-${local.project_name}-bucket/*"]
+  }
+}
+
+data "aws_iam_policy_document" "ec2_s3_access" {
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:ListBucket",
+      "s3:DeleteObject"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.environment}-${local.project_name}-bucket",
+      "arn:aws:s3:::${var.environment}-${local.project_name}-bucket/*"
+    ]
+  }
+}
