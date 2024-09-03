@@ -137,6 +137,11 @@ resource "aws_lb_listener" "main" {
   }
 }
 
+resource "aws_iam_instance_profile" "main" {
+  name = var.iam_instance_profile
+  role = var.iam_role_name
+}
+
 resource "aws_launch_template" "main" {
   name                   = var.launch_template_name
   image_id               = var.image_id
@@ -150,7 +155,7 @@ resource "aws_launch_template" "main" {
   ebs_optimized = var.ebs_optimized
 
   iam_instance_profile {
-    name = var.iam_instance_profile
+    name = aws_iam_instance_profile.main.name
   }
 
   monitoring {
@@ -191,7 +196,6 @@ resource "aws_autoscaling_group" "main" {
   vpc_zone_identifier       = var.asg_subnets
   min_size                  = var.min_size
   max_size                  = var.max_size
-  desired_capacity          = var.desired_capacity
   health_check_type         = var.health_check_type
   health_check_grace_period = var.health_check_grace_period
   termination_policies      = var.termination_policies
@@ -215,9 +219,8 @@ resource "aws_autoscaling_group" "main" {
 # policies to automatically scale up/down based on CPU utilization.
 resource "aws_autoscaling_policy" "scale_up" {
   name                   = "${var.project}-scale-up"
-  scaling_adjustment     = var.scale_up_adjustment
   adjustment_type        = var.adjustment_type
-  cooldown               = var.cooldown
+  policy_type            = var.policy_type
   autoscaling_group_name = aws_autoscaling_group.main.name
 
   target_tracking_configuration {
@@ -231,9 +234,8 @@ resource "aws_autoscaling_policy" "scale_up" {
 
 resource "aws_autoscaling_policy" "scale_down" {
   name                   = "${var.project}-scale-down"
-  scaling_adjustment     = var.scale_down_adjustment
   adjustment_type        = var.adjustment_type
-  cooldown               = var.cooldown
+  policy_type            = var.policy_type
   autoscaling_group_name = aws_autoscaling_group.main.name
 
   target_tracking_configuration {

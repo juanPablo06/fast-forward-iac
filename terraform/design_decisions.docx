@@ -1,0 +1,73 @@
+Terraform Project Management Decisions
+
+Making a decision on how to manage the Terraform project is always a challenging first step.
+As the project grows, it becomes more complex and harder to manage, and also difficult to change how it is managed.
+So I took some time reminding some of my past experiences and reading about other people's experiences. 
+There are many tools and approaches, but I sticked to the basics and used a simple approach that I think is
+suitable  and showcases my understanding of Terraform best practices.
+
+Module Structure: The project was organizes into reusable modules for each resource type.
+This allows better organization, reusability and consistency across different environments. 
+The modular structure makes it easier to manage and maintain.
+The modules have a lot of default values set, and include a readme file with usage instructions,
+outputs and managed resources. This makes the module flexible for different use cases.
+
+State Management: Terraform state is stored remotely in a versioned S3 bucket with state locking 
+enabled using DynamoDB. This way multiple team members can work on the same infrastructure without
+risking conflicts, as DynamoDB prevents concurrent state operations.
+One challenge is the case when we don't have different AWS account for each environment.
+This would require a dynamic backend configuration approach to achieve state isolation and avoid conflicts/overwrites.
+
+Environment Management: Separate variable files are used for different environments.
+Using separate variable files we can ensure that configurations for different environments
+are isolated and can be managed independently. This allows easy customization of configurations
+for different environments, while keeping the core infrastructure codebase consistent.
+I also thought of having a separate folder for each environment, and worked in both scenarios,
+but it makes the code a lot repetitive. Using separate variable files also has its downsides, 
+like the risk of accidentally using the wrong variable file or having to use feature flags to
+enable/disable certain configurations depending on the environment, but I think the benefits
+outweigh the downsides and we can mitigate risks by having an automated pipeline to apply changes
+and pick the right variable file based on the environment.
+
+I had some trouble after creating the infrastructure in my AWS account. Instances were unhealthy and the Load Balancer was not able to route traffic to the instances. 
+I found out that the nginx was not being installed properly. I had to ssh into the instances to troubleshoot the commands and fix the issue.
+
+Architecture Design Decisions
+
+- VPC and Subnets: The VPC is created with both public and private subnets across
+multiple availability_zones to ensure high availability and fault tolerance.
+
+- Internet Gateway and NAT Gateway: An Internet Gateway is attached to the VPC for internet access to public subnets,
+and a NAT gateway for each private subnet, allowing high availability and fault tolerance.
+If a NAT gateway fails or becomes unavailable, instances in the private subnet associated with that NAT
+gateway can no longer access the internet. By having a NAT gateway in each private subnet, we can create
+redundancy. Distributing NAT gateways across subnets helps distribute the load, ensuring better performance
+and responsiveness. We got to pay attention to the NAT gateway costs, as they can be expensive. 
+If costs becomes an issue, we can consider other approaches. NAT gateways incur hourly charges, 
+so we need to balance the benefits of high availability and fault tolerance against the additional cost
+
+- Route Tables: Separate route tables are created for public and private subnets to manage traffic
+routing effectively.
+
+- EC2 instances and Auto Scaling Group: EC2 instances are managed using an Auto Scaling Group to handle scaling based 
+on demand. By default, if the CPU average utilization is above 70%, the Auto Scaling Group will launch a new instance.
+It provides cost efficiency and performance optimization. The instances can only be accessed via the Load Balancer. 
+
+
+- RDS instance: The RDS module contains the default configuration to create a PostgreSQL database instance
+with maintenance windows and backup retention periods. The database instance is created in a private subnet for
+security reasons. Passsword is managed by AWS Secrets Manager by default, it allows us to rotate the password
+automatically and securely. Only the application has access to the database, and the database is not exposed to the internet.
+Blue/Green deployment is enabled by default, allowing low-downtime upgrades, testability of major or minor updates.
+
+- S3 Bucket: It was created with versioning enabled and lifecycle policies to manage storage efficiently.
+It transitions old versions of objects to cheaper storage classes over time.
+
+- High Availability: Distributing subnets across multiple availability zones ensures that the infrastructure remains
+available even if one zone goes down. 
+
+- Security: Using private subnets for sensitive resources enhances security. 
+IAM roles and policies were created ensuring that resources have only the permissions they need to function,
+following the principle of least privilege.
+
+The Terraform modules are customizable and can be easily extended to include additional resources or configurations.

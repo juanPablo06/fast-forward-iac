@@ -9,7 +9,9 @@ The Compute module sets up the EC2 instances, Auto Scaling Group (ASG), and Appl
 - Application Load Balancer
 - Target Group
 - Listener
--  Security Groups
+- IAM Instance Profile
+- Security Groups
+
 
 ## Usage
 

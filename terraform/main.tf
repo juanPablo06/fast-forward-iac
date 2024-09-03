@@ -16,7 +16,6 @@ module "ec2_iam" {
   policy_names        = ["${var.environment}-${local.project_name}-ec2-policy"]
   policy_descriptions = ["Policy for allowing the EC2 instances to interact with the S3 bucket and other AWS services securely"]
   policy_documents    = [data.aws_iam_policy_document.ec2_s3_access.json]
-
 }
 
 module "compute" {
@@ -34,23 +33,16 @@ module "compute" {
   tg_name              = "${var.environment}-${local.project_name}-tg"
   launch_template_name = "${var.environment}-${local.project_name}-lt"
 
-  project              = local.project_name
-  iam_instance_profile = module.ec2_iam.role_name
-  image_id             = data.aws_ami.amazon_linux_2023.id
-  instance_type        = var.instance_type
+  project       = local.project_name
+  iam_role_name = module.ec2_iam.role_name
+  image_id      = data.aws_ami.amazon_linux_2023.id
+  instance_type = var.instance_type
 
-  asg_name         = "${var.environment}-${local.project_name}-asg"
-  min_size         = var.min_size
-  max_size         = var.max_size
-  desired_capacity = var.desired_capacity
+  asg_name = "${var.environment}-${local.project_name}-asg"
+  min_size = var.min_size
+  max_size = var.max_size
 
-  user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              amazon-linux-extras install nginx1 -y
-              systemctl start nginx
-              systemctl enable nginx
-              EOF
+  user_data = filebase64("./scripts/nginx.sh")
 
   alb_security_group_ingress = [
     {
@@ -94,9 +86,9 @@ module "database" {
   vpc_id               = module.networking.vpc_id
   db_instance_name     = "${var.environment}-${local.project_name}-db"
   db_name              = local.project_name
-  parameter_group_name = "${local.project_name}-pg"
   db_sg_name           = "${var.environment}-${local.project_name}-db-sg"
   db_subnet_group_name = "${var.environment}-${local.project_name}-db-subnet-group"
+  db_username          = "${local.project_name}User"
 
   final_snapshot_identifier = "${var.environment}-${local.project_name}-snapshot"
   multi_az                  = true

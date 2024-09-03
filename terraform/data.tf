@@ -28,6 +28,11 @@ data "aws_iam_policy_document" "s3_read_access" {
   statement {
     actions   = ["s3:GetObject"]
     resources = ["arn:aws:s3:::${var.environment}-${local.project_name}-bucket/*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
   }
 }
 

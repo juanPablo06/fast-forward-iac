@@ -18,11 +18,6 @@ variable "max_size" {
   type        = number
 }
 
-variable "desired_capacity" {
-  description = "The desired number of instances in the ASG"
-  type        = number
-}
-
 variable "lifecycle_rules" {
   default = [
     {

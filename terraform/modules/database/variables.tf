@@ -2,6 +2,10 @@
 variable "db_sg_name" {
   description = "The name of the security group for the RDS instance"
   type        = string
+  validation {
+    condition     = length(var.db_sg_name) > 0
+    error_message = "The db_sg_name must not be empty."
+  }
 }
 
 variable "vpc_id" {
@@ -45,12 +49,20 @@ variable "security_group_tags" {
 variable "db_subnet_group_name" {
   description = "The name of the DB subnet group"
   type        = string
+  validation {
+    condition     = length(var.db_subnet_group_name) > 0
+    error_message = "The db_subnet_group_name must not be empty."
+  }
 }
 
 variable "subnet_ids" {
   description = "A list of VPC subnet IDs to associate with the DB subnet group"
   type        = list(string)
   default     = []
+  validation {
+    condition     = length(var.subnet_ids) > 0
+    error_message = "At least one subnet ID must be specified."
+  }
 }
 
 variable "db_subnet_group_tags" {
@@ -63,6 +75,10 @@ variable "db_subnet_group_tags" {
 variable "db_instance_name" {
   description = "The identifier for the RDS instance"
   type        = string
+  validation {
+    condition     = length(var.db_instance_name) > 0
+    error_message = "The db_instance_name must not be empty."
+  }
 }
 
 variable "allocated_storage" {
@@ -121,18 +137,13 @@ variable "db_name" {
 variable "db_username" {
   description = "The master username for the RDS instance"
   type        = string
-  default     = "admin"
+  default     = ""
 }
 
 variable "manage_master_user_password" {
   description = "Whether to manage the master user password with Secrets Manager"
   type        = bool
   default     = true
-}
-
-variable "parameter_group_name" {
-  description = "The name of the DB parameter group to associate with the instance"
-  type        = string
 }
 
 variable "publicly_accessible" {
@@ -180,7 +191,7 @@ variable "backup_window" {
 variable "maintenance_window" {
   description = "The weekly time range during which system maintenance can occur, in UTC"
   type        = string
-  default     = "Mon:03:00-Mon:04:00"
+  default     = "Mon:05:00-Mon:06:00"
 }
 
 variable "blue_green_update_enabled" {

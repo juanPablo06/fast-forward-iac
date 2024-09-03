@@ -55,7 +55,6 @@ resource "aws_db_instance" "main" {
   db_subnet_group_name        = aws_db_subnet_group.main.name
   username                    = var.db_username
   manage_master_user_password = var.manage_master_user_password
-  parameter_group_name        = var.parameter_group_name
   publicly_accessible         = var.publicly_accessible
   skip_final_snapshot         = var.skip_final_snapshot
   final_snapshot_identifier   = var.final_snapshot_identifier

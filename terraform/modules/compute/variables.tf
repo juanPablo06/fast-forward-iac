@@ -3,11 +3,19 @@
 variable "instance_sg_name" {
   description = "The name of the instance security group"
   type        = string
+  validation {
+    condition     = length(var.instance_sg_name) > 0
+    error_message = "The instance_sg_name must not be empty."
+  }
 }
 
 variable "alb_sg_name" {
   description = "The name of the instance security group"
   type        = string
+  validation {
+    condition     = length(var.alb_sg_name) > 0
+    error_message = "The alb_sg_name must not be empty."
+  }
 }
 
 variable "instance_sg_description" {
@@ -31,6 +39,10 @@ variable "alb_security_group_ingress" {
     self            = optional(bool)
   }))
   default = []
+  validation {
+    condition     = alltrue([for rule in var.alb_security_group_ingress : rule.from_port >= 0 && rule.to_port >= 0])
+    error_message = "All ingress rules must have non-negative from_port and to_port values."
+  }
 }
 
 variable "alb_security_group_egress" {
@@ -44,6 +56,10 @@ variable "alb_security_group_egress" {
     self            = optional(bool)
   }))
   default = []
+  validation {
+    condition     = alltrue([for rule in var.alb_security_group_egress : rule.from_port >= 0 && rule.to_port >= 0])
+    error_message = "All egress rules must have non-negative from_port and to_port values."
+  }
 }
 
 variable "instance_security_group_ingress" {
@@ -57,6 +73,10 @@ variable "instance_security_group_ingress" {
     self            = optional(bool)
   }))
   default = []
+  validation {
+    condition     = alltrue([for rule in var.instance_security_group_ingress : rule.from_port >= 0 && rule.to_port >= 0])
+    error_message = "All ingress rules must have non-negative from_port and to_port values."
+  }
 }
 
 variable "instance_security_group_egress" {
@@ -70,6 +90,10 @@ variable "instance_security_group_egress" {
     self            = optional(bool)
   }))
   default = []
+  validation {
+    condition     = alltrue([for rule in var.instance_security_group_egress : rule.from_port >= 0 && rule.to_port >= 0])
+    error_message = "All egress rules must have non-negative from_port and to_port values."
+  }
 }
 
 variable "security_group_tags" {
@@ -78,10 +102,24 @@ variable "security_group_tags" {
   default     = {}
 }
 
+# Instance Profile Variables
+variable "iam_role_name" {
+  description = "The name of the IAM role"
+  type        = string
+  validation {
+    condition     = length(var.iam_role_name) > 0
+    error_message = "The iam_role_name must not be empty."
+  }
+}
+
 # Load Balancer Variables
 variable "alb_name" {
   description = "The name of the load balancer"
   type        = string
+  validation {
+    condition     = length(var.alb_name) > 0
+    error_message = "The alb_name must not be empty."
+  }
 }
 
 variable "alb_subnets" {
@@ -100,6 +138,10 @@ variable "load_balancer_type" {
   description = "The type of load balancer (e.g., application, network)"
   type        = string
   default     = "application"
+  validation {
+    condition     = contains(["application", "network"], var.load_balancer_type)
+    error_message = "The load_balancer_type must be either 'application' or 'network'."
+  }
 }
 
 variable "subnets" {
@@ -150,12 +192,20 @@ variable "lb_tags" {
 variable "tg_name" {
   description = "The name of the target group"
   type        = string
+  validation {
+    condition     = length(var.tg_name) > 0
+    error_message = "The tg_name must not be empty."
+  }
 }
 
 variable "port" {
   description = "The port on which the target group listens"
   type        = number
   default     = 80
+  validation {
+    condition     = var.port > 0 && var.port <= 65535
+    error_message = "The port must be a positive number between 1 and 65535."
+  }
 }
 
 variable "protocol" {
@@ -204,23 +254,39 @@ variable "default_action_type" {
   description = "The type of default action for the listener (e.g., forward)"
   type        = string
   default     = "forward"
+  validation {
+    condition     = contains(["forward", "redirect", "fixed-response"], var.default_action_type)
+    error_message = "The default_action_type must be one of 'forward', 'redirect', or 'fixed-response'."
+  }
 }
 
 # Launch Template Variables
 variable "launch_template_name" {
   description = "The name of the launch template"
   type        = string
+  validation {
+    condition     = length(var.launch_template_name) > 0
+    error_message = "The launch_template_name must not be empty."
+  }
 }
 
 variable "image_id" {
   description = "The ID of the AMI to use for the launch template"
   type        = string
+  validation {
+    condition     = length(var.image_id) > 0
+    error_message = "The image_id must not be empty."
+  }
 }
 
 variable "instance_type" {
   description = "The instance type to use for the launch template"
   type        = string
   default     = "t2.micro"
+  validation {
+    condition     = length(var.instance_type) > 0
+    error_message = "The instance_type must not be empty."
+  }
 }
 
 variable "user_data" {
@@ -297,6 +363,10 @@ variable "network_interfaces" {
 variable "asg_name" {
   description = "The name of the Auto Scaling Group"
   type        = string
+  validation {
+    condition     = length(var.asg_name) > 0
+    error_message = "The asg_name must not be empty."
+  }
 }
 
 variable "asg_subnets" {
@@ -315,12 +385,6 @@ variable "max_size" {
   description = "The maximum size of the Auto Scaling Group"
   type        = number
   default     = 6
-}
-
-variable "desired_capacity" {
-  description = "The desired capacity of the Auto Scaling Group"
-  type        = number
-  default     = 3
 }
 
 variable "health_check_type" {
@@ -356,28 +420,10 @@ variable "project" {
   type        = string
 }
 
-variable "scale_up_adjustment" {
-  description = "The number of instances by which to scale, when a scaling activity occurs"
-  type        = number
-  default     = 1
-}
-
-variable "scale_down_adjustment" {
-  description = "The number of instances by which to scale, when a scaling activity occurs"
-  type        = number
-  default     = -1
-}
-
 variable "adjustment_type" {
   description = "The type of adjustment. Valid values are ChangeInCapacity, ExactCapacity, and PercentChangeInCapacity"
   type        = string
   default     = "ChangeInCapacity"
-}
-
-variable "cooldown" {
-  description = "The amount of time, in seconds, after a scaling activity completes before another scaling activity can start"
-  type        = number
-  default     = 300
 }
 
 variable "predefined_metric_type" {
@@ -390,4 +436,10 @@ variable "target_value" {
   description = "The target value for the metric"
   type        = number
   default     = 70
+}
+
+variable "policy_type" {
+  description = "The policy type to use for the target tracking scaling policy"
+  type        = string
+  default     = "TargetTrackingScaling"
 }
