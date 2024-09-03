@@ -5,24 +5,69 @@ variable "instance_sg_name" {
   type        = string
 }
 
-variable "security_group_ingress" {
+variable "alb_sg_name" {
+  description = "The name of the instance security group"
+  type        = string
+}
+
+variable "instance_sg_description" {
+  description = "The description of the instance security group"
+  type        = string
+}
+
+variable "alb_sg_description" {
+  description = "The description of the instance security group"
+  type        = string
+}
+
+variable "alb_security_group_ingress" {
   description = "List of ingress rules for the security group"
   type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
+    from_port       = number
+    to_port         = number
+    protocol        = string
+    cidr_blocks     = optional(list(string))
+    security_groups = optional(list(string))
+    self            = optional(bool)
   }))
   default = []
 }
 
-variable "security_group_egress" {
+variable "alb_security_group_egress" {
   description = "List of egress rules for the security group"
   type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
+    from_port       = number
+    to_port         = number
+    protocol        = string
+    cidr_blocks     = optional(list(string))
+    security_groups = optional(list(string))
+    self            = optional(bool)
+  }))
+  default = []
+}
+
+variable "instance_security_group_ingress" {
+  description = "List of ingress rules for the security group"
+  type = list(object({
+    from_port       = number
+    to_port         = number
+    protocol        = string
+    cidr_blocks     = optional(list(string))
+    security_groups = optional(list(string))
+    self            = optional(bool)
+  }))
+  default = []
+}
+
+variable "instance_security_group_egress" {
+  description = "List of egress rules for the security group"
+  type = list(object({
+    from_port       = number
+    to_port         = number
+    protocol        = string
+    cidr_blocks     = optional(list(string))
+    security_groups = optional(list(string))
+    self            = optional(bool)
   }))
   default = []
 }
@@ -34,7 +79,7 @@ variable "security_group_tags" {
 }
 
 # Load Balancer Variables
-variable "name" {
+variable "alb_name" {
   description = "The name of the load balancer"
   type        = string
 }
@@ -96,6 +141,11 @@ variable "lb_tags" {
 }
 
 # Target Group Variables
+variable "tg_name" {
+  description = "The name of the target group"
+  type        = string
+}
+
 variable "port" {
   description = "The port on which the target group listens"
   type        = number
@@ -125,7 +175,16 @@ variable "health_check" {
     healthy_threshold   = number
     unhealthy_threshold = number
   })
-  default = null
+  default = {
+    enabled             = true
+    interval            = 30
+    path                = "/"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+  }
 }
 
 variable "tg_tags" {
@@ -142,6 +201,11 @@ variable "default_action_type" {
 }
 
 # Launch Template Variables
+variable "launch_template_name" {
+  description = "The name of the launch template"
+  type        = string
+}
+
 variable "image_id" {
   description = "The ID of the AMI to use for the launch template"
   type        = string
@@ -224,6 +288,11 @@ variable "network_interfaces" {
 
 
 # Autoscaling Group Variables
+variable "asg_name" {
+  description = "The name of the Auto Scaling Group"
+  type        = string
+}
+
 variable "min_size" {
   description = "The minimum size of the Auto Scaling Group"
   type        = number
@@ -269,3 +338,44 @@ variable "asg_tags" {
   default = {}
 }
 
+# Auto Scaling Policy Variables
+variable "project" {
+  description = "The project name prefix for the scaling policies"
+  type        = string
+}
+
+variable "scale_up_adjustment" {
+  description = "The number of instances by which to scale, when a scaling activity occurs"
+  type        = number
+  default     = 1
+}
+
+variable "scale_down_adjustment" {
+  description = "The number of instances by which to scale, when a scaling activity occurs"
+  type        = number
+  default     = -1
+}
+
+variable "adjustment_type" {
+  description = "The type of adjustment. Valid values are ChangeInCapacity, ExactCapacity, and PercentChangeInCapacity"
+  type        = string
+  default     = "ChangeInCapacity"
+}
+
+variable "cooldown" {
+  description = "The amount of time, in seconds, after a scaling activity completes before another scaling activity can start"
+  type        = number
+  default     = 300
+}
+
+variable "predefined_metric_type" {
+  description = "The metric type to use for the target tracking scaling policy"
+  type        = string
+  default     = "ASGAverageCPUUtilization"
+}
+
+variable "target_value" {
+  description = "The target value for the metric"
+  type        = number
+  default     = 70
+}

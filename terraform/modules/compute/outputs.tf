@@ -1,9 +1,17 @@
-output "security_group_id" {
-  value = aws_security_group.main.id
+output "alb_security_group_id" {
+  value = aws_security_group.alb.id
 }
 
-output "security_group_arn" {
-  value = aws_security_group.main.arn
+output "alb_security_group_arn" {
+  value = aws_security_group.alb.arn
+}
+
+output "instance_security_group_id" {
+  value = aws_security_group.ec2.id
+}
+
+output "instance_security_group_arn" {
+  value = aws_security_group.ec2.arn
 }
 
 output "load_balancer_arn" {

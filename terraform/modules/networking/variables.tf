@@ -33,13 +33,13 @@ variable "vpc_tags" {
 variable "public_subnet_cidr_blocks" {
   description = "List of CIDR blocks for the public subnets"
   type        = list(string)
-  default     = []
+  default     = ["10.0.0.0/24", "10.0.1.0/24", "10.0.2.0/24"]
 }
 
 variable "private_subnet_cidr_blocks" {
   description = "List of CIDR blocks for the private subnets"
   type        = list(string)
-  default     = []
+  default     = ["10.0.3.0/24", "10.0.4.0/24", "10.0.5.0/24"]
 }
 
 variable "availability_zones" {
@@ -68,6 +68,12 @@ variable "internet_gateway_tags" {
 }
 
 # EIP Configuration
+variable "eip_domain" {
+  description = "The domain for the EIPs (vpc or standard)"
+  type        = string
+  default     = "vpc"
+}
+
 variable "eip_tags" {
   description = "Tags to apply to the EIPs"
   type        = map(string)

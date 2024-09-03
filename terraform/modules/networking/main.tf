@@ -36,7 +36,7 @@ resource "aws_internet_gateway" "main" {
 resource "aws_eip" "main" {
   count = length(var.public_subnet_cidr_blocks)
 
-  domain = true
+  domain = var.eip_domain
 
   tags = var.eip_tags
 }
@@ -54,8 +54,6 @@ resource "aws_nat_gateway" "main" {
 }
 
 resource "aws_route_table" "public" {
-  count = length(var.public_subnet_cidr_blocks)
-
   vpc_id = aws_vpc.main.id
 
   route {
@@ -69,7 +67,7 @@ resource "aws_route_table" "public" {
 resource "aws_route_table_association" "public" {
   count          = length(var.public_subnet_cidr_blocks)
   subnet_id      = element(aws_subnet.public.*.id, count.index)
-  route_table_id = element(aws_route_table.public.*.id, count.index)
+  route_table_id = aws_route_table.public.id
 }
 
 resource "aws_route_table" "private" {
