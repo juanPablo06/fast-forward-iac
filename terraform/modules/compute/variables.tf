@@ -84,6 +84,12 @@ variable "alb_name" {
   type        = string
 }
 
+variable "alb_subnets" {
+  description = "List of subnet IDs to attach to the load balancer"
+  type        = list(string)
+  default     = []
+}
+
 variable "internal" {
   description = "Whether the load balancer is internal or external"
   type        = bool
@@ -291,6 +297,12 @@ variable "network_interfaces" {
 variable "asg_name" {
   description = "The name of the Auto Scaling Group"
   type        = string
+}
+
+variable "asg_subnets" {
+  description = "List of subnet IDs to attach to the Auto Scaling Group"
+  type        = list(string)
+  default     = []
 }
 
 variable "min_size" {

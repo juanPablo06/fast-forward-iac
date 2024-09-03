@@ -79,7 +79,7 @@ resource "aws_lb" "main" {
   internal           = var.internal
   load_balancer_type = var.load_balancer_type
   security_groups    = [aws_security_group.alb.id]
-  subnets            = var.subnets
+  subnets            = var.alb_subnets
 
   enable_deletion_protection = var.enable_deletion_protection
 
@@ -188,7 +188,7 @@ resource "aws_launch_template" "main" {
 
 resource "aws_autoscaling_group" "main" {
   name                      = var.asg_name
-  vpc_zone_identifier       = var.subnets
+  vpc_zone_identifier       = var.asg_subnets
   min_size                  = var.min_size
   max_size                  = var.max_size
   desired_capacity          = var.desired_capacity

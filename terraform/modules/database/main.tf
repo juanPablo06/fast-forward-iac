@@ -1,30 +1,45 @@
 resource "aws_security_group" "main" {
   name   = var.db_sg_name
-  vpc_id = aws_vpc.main.id
+  vpc_id = var.vpc_id
 
   dynamic "ingress" {
     for_each = var.security_group_ingress
     content {
-      from_port   = try(ingress.value.from_port, null)
-      to_port     = try(ingress.value.to_port, null)
-      protocol    = try(ingress.value.protocol, null)
-      cidr_blocks = try(ingress.value.cidr_blocks, null)
+      description      = lookup(ingress.value, "description", "Managed by Terraform")
+      from_port        = ingress.value.from_port
+      to_port          = ingress.value.to_port
+      protocol         = ingress.value.protocol
+      cidr_blocks      = lookup(ingress.value, "cidr_blocks", null)
+      ipv6_cidr_blocks = lookup(ingress.value, "ipv6_cidr_blocks", null)
+      prefix_list_ids  = lookup(ingress.value, "prefix_list_ids", null)
+      security_groups  = lookup(ingress.value, "security_groups", null)
+      self             = lookup(ingress.value, "self", null)
     }
   }
 
   dynamic "egress" {
     for_each = var.security_group_egress
     content {
-      from_port   = try(egress.value.from_port, null)
-      to_port     = try(egress.value.to_port, null)
-      protocol    = try(egress.value.protocol, null)
-      cidr_blocks = try(egress.value.cidr_blocks, null)
+      description      = lookup(egress.value, "description", "Managed by Terraform")
+      from_port        = egress.value.from_port
+      to_port          = egress.value.to_port
+      protocol         = egress.value.protocol
+      cidr_blocks      = lookup(egress.value, "cidr_blocks", null)
+      ipv6_cidr_blocks = lookup(egress.value, "ipv6_cidr_blocks", null)
+      prefix_list_ids  = lookup(egress.value, "prefix_list_ids", null)
+      security_groups  = lookup(egress.value, "security_groups", null)
+      self             = lookup(egress.value, "self", null)
     }
   }
 
   tags = var.security_group_tags
 }
 
+resource "aws_db_subnet_group" "main" {
+  name       = var.db_subnet_group_name
+  subnet_ids = var.subnet_ids
+  tags       = var.db_subnet_group_tags
+}
 
 resource "aws_db_instance" "main" {
   identifier                  = var.db_instance_name
@@ -37,6 +52,7 @@ resource "aws_db_instance" "main" {
   engine_version              = var.engine_version
   instance_class              = var.instance_class
   db_name                     = var.db_name
+  db_subnet_group_name        = aws_db_subnet_group.main.name
   username                    = var.db_username
   manage_master_user_password = var.manage_master_user_password
   parameter_group_name        = var.parameter_group_name
@@ -46,7 +62,6 @@ resource "aws_db_instance" "main" {
   vpc_security_group_ids      = [aws_security_group.main.id]
   multi_az                    = var.multi_az
   deletion_protection         = var.deletion_protection
-  db_subnet_group_name        = aws_db_subnet_group.main.name
 
   backup_retention_period = var.backup_retention_period
   backup_window           = var.backup_window

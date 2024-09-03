@@ -12,6 +12,11 @@ resource "aws_s3_bucket_ownership_controls" "main" {
   }
 }
 
+resource "aws_s3_bucket_policy" "main" {
+  bucket = aws_s3_bucket.main.bucket
+  policy = var.bucket_policy
+}
+
 resource "aws_s3_bucket_public_access_block" "main" {
   bucket = aws_s3_bucket.main.bucket
 
@@ -27,6 +32,14 @@ resource "aws_s3_bucket_acl" "main" {
 
   bucket = aws_s3_bucket.main.bucket
   acl    = var.acl
+}
+
+resource "aws_s3_bucket_versioning" "main" {
+  bucket = aws_s3_bucket.main.bucket
+
+  versioning_configuration {
+    status = var.versioning_status
+  }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "main" {
@@ -47,30 +60,25 @@ resource "aws_s3_bucket_lifecycle_configuration" "main" {
         }
       }
 
-      dynamic "expiration" {
-        for_each = rule.value.expiration
+      dynamic "noncurrent_version_expiration" {
+        for_each = rule.value.noncurrent_version_expiration
 
         content {
-          days = expiration.value.days
+          noncurrent_days = noncurrent_version_expiration.value.days
         }
       }
 
-      dynamic "transition" {
-        for_each = rule.value.transition
+      dynamic "noncurrent_version_transition" {
+        for_each = rule.value.noncurrent_version_transition
 
         content {
-          days          = transition.value.days
-          storage_class = transition.value.storage_class
+          noncurrent_days = noncurrent_version_transition.value.days
+          storage_class   = noncurrent_version_transition.value.storage_class
         }
       }
     }
   }
+
+  depends_on = [aws_s3_bucket_versioning.main]
 }
 
-resource "aws_s3_bucket_versioning" "main" {
-  bucket = aws_s3_bucket.main.bucket
-
-  versioning_configuration {
-    status = var.versioning_status
-  }
-}

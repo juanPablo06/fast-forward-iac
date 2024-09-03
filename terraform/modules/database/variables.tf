@@ -4,13 +4,20 @@ variable "db_sg_name" {
   type        = string
 }
 
+variable "vpc_id" {
+  description = "The ID of the VPC in which to create the security group"
+  type        = string
+}
+
 variable "security_group_ingress" {
   description = "List of ingress rules for the security group"
   type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
+    from_port       = number
+    to_port         = number
+    protocol        = string
+    cidr_blocks     = optional(list(string))
+    security_groups = optional(list(string))
+    self            = optional(bool)
   }))
   default = []
 }
@@ -18,16 +25,36 @@ variable "security_group_ingress" {
 variable "security_group_egress" {
   description = "List of egress rules for the security group"
   type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
+    from_port       = number
+    to_port         = number
+    protocol        = string
+    cidr_blocks     = optional(list(string))
+    security_groups = optional(list(string))
+    self            = optional(bool)
   }))
   default = []
 }
 
 variable "security_group_tags" {
   description = "Tags to apply to the security group"
+  type        = map(string)
+  default     = {}
+}
+
+# RDS Subnet Group Variables
+variable "db_subnet_group_name" {
+  description = "The name of the DB subnet group"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "A list of VPC subnet IDs to associate with the DB subnet group"
+  type        = list(string)
+  default     = []
+}
+
+variable "db_subnet_group_tags" {
+  description = "Tags to apply to the DB subnet group"
   type        = map(string)
   default     = {}
 }
@@ -65,7 +92,7 @@ variable "apply_immediately" {
 variable "storage_type" {
   description = "The storage type for the RDS instance (e.g., gp2, io1)"
   type        = string
-  default     = ""
+  default     = "gp2"
 }
 
 variable "engine" {
@@ -94,7 +121,7 @@ variable "db_name" {
 variable "db_username" {
   description = "The master username for the RDS instance"
   type        = string
-  default     = ""
+  default     = "admin"
 }
 
 variable "manage_master_user_password" {
@@ -123,7 +150,7 @@ variable "skip_final_snapshot" {
 variable "final_snapshot_identifier" {
   description = "The name of the final DB snapshot when skip_final_snapshot is false"
   type        = string
-  default     = null
+  default     = ""
 }
 
 variable "multi_az" {

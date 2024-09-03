@@ -10,6 +10,12 @@ variable "bucket_tags" {
   default     = {}
 }
 
+# S3 Bucket Policy Variables
+variable "bucket_policy" {
+  description = "The policy document for the S3 bucket"
+  type        = string
+}
+
 # Ownership Controls Variables
 variable "object_ownership" {
   description = "The object ownership rule for the bucket (e.g., BucketOwnerEnforced)"
@@ -60,11 +66,11 @@ variable "lifecycle_rules" {
       prefix = string
     }))
 
-    expiration = list(object({
+    noncurrent_version_expiration = list(object({
       days = number
     }))
 
-    transition = list(object({
+    noncurrent_version_transition = list(object({
       days          = number
       storage_class = string
     }))
